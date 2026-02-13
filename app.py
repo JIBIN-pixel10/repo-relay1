@@ -51,13 +51,13 @@ REGIONS = {
     },
     "Kalos": {
         "Chespin": {"id": 650, "type": "Grass", "hp": 100, "moves": {"Vine Whip": 20, "Seed Bomb": 28}},
-        "Fennekin": {"id": 653, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Psybeam": 25}},
+        "Fennekin": {"id": 653, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Psybeam": 23}},
         "Froakie": {"id": 656, "type": "Water", "hp": 100, "moves": {"Pound": 15, "Water Pulse": 25}},
     },
     "Alola": {
         "Rowlet": {"id": 722, "type": "Grass", "hp": 100, "moves": {"Leafage": 20, "Astonish": 25}},
-        "Litten": {"id": 725, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Fire Fang": 28}},
-        "Popplio": {"id": 728, "type": "Water", "hp": 100, "moves": {"Pound": 15, "Bubble Beam": 28}},
+        "Litten": {"id": 725, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Fire Fang": 25}},
+        "Popplio": {"id": 728, "type": "Water", "hp": 100, "moves": {"Pound": 19, "Bubble Beam": 28}},
     }
 }
 
@@ -186,7 +186,7 @@ elif st.session_state.phase == "result":
         st.session_state.total_wins += 1
         save_data(st.session_state.total_wins)
     else:
-        st.header("💀 SYSTEM FAILURE")
+        st.header("💀 HHAA YOU LOSE 😂")
     
     if st.button("REBOOT ADVENTURE"):
         st.session_state.update({"phase": "setup", "logs": []})
