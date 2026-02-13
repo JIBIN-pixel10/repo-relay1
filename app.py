@@ -20,17 +20,43 @@ DATA = {
         "Mudkip": {"id": 258, "type": "Water", "hp": 100, "moves": {"Tackle": 15, "Water Gun": 28}},
     }
 }
-
-# --- STYLING ---
-st.set_page_config(page_title="PokeStream v2", page_icon="🎮")
-
+# --- STYLES ---
 st.markdown("""
-    <style>
-    .stApp { background: #121212; color: white; }
-    .poke-card { background: #2d2d2d; padding: 20px; border-radius: 15px; border: 2px solid #555; text-align: center; }
-    .battle-log { color: #00ff00; font-family: monospace; background: #000; padding: 10px; border-radius: 5px; }
-    </style>
+<style>
+
+
+.stApp {
+    background-color: #121212;
+}
+
+
+html, body, [class*="css"]  {
+    color: #ffffff;
+}
+
+
+.stButton>button {
+    background-color: #333333;
+    color: white;
+    border-radius: 10px;
+    border: 1px solid #555;
+}
+
+.stButton>button:hover {
+    background-color: #444444;
+    color: white;
+}
+.battle-log {
+    color: #00ff00;
+    font-family: monospace;
+    background: #000;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+</style>
 """, unsafe_allow_html=True)
+
 
 # --- INITIALIZE MEMORY (SESSION STATE) ---
 if 'phase' not in st.session_state:
