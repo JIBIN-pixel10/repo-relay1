@@ -1,180 +1,194 @@
 import streamlit as st
 import random
+import json
+import os
 
-# --- DATA & ASSETS ---
+# --- PERSISTENCE ---
+SAVE_FILE = "trainer_data.json"
+
+def load_data():
+    if os.path.exists(SAVE_FILE):
+        try:
+            with open(SAVE_FILE, "r") as f: return json.load(f)
+        except: return {"total_wins": 0}
+    return {"total_wins": 0}
+
+def save_data(wins):
+    with open(SAVE_FILE, "w") as f: json.dump({"total_wins": wins}, f)
+
+# --- DATASET ---
 TYPE_CHART = {
     "Fire": {"Grass": 2.0, "Water": 0.5, "Fire": 0.5},
     "Water": {"Fire": 2.0, "Grass": 0.5, "Water": 0.5},
     "Grass": {"Water": 2.0, "Fire": 0.5, "Grass": 0.5}
 }
 
-DATA = {
+REGIONS = {
     "Kanto": {
         "Bulbasaur": {"id": 1, "type": "Grass", "hp": 100, "moves": {"Tackle": 15, "Vine Whip": 25}},
         "Charmander": {"id": 4, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Ember": 25}},
         "Squirtle": {"id": 7, "type": "Water", "hp": 100, "moves": {"Tackle": 15, "Water Gun": 25}},
     },
+    "Johto": {
+        "Chikorita": {"id": 152, "type": "Grass", "hp": 100, "moves": {"Tackle": 15, "Razor Leaf": 25}},
+        "Cyndaquil": {"id": 155, "type": "Fire", "hp": 100, "moves": {"Tackle": 15, "Flame Wheel": 25}},
+        "Totodile": {"id": 158, "type": "Water", "hp": 100, "moves": {"Scratch": 15, "Water Gun": 25}},
+    },
     "Hoenn": {
         "Treecko": {"id": 252, "type": "Grass", "hp": 100, "moves": {"Pound": 15, "Absorb": 28}},
         "Torchic": {"id": 255, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Ember": 28}},
         "Mudkip": {"id": 258, "type": "Water", "hp": 100, "moves": {"Tackle": 15, "Water Gun": 28}},
+    },
+    "Sinnoh": {
+        "Turtwig": {"id": 387, "type": "Grass", "hp": 100, "moves": {"Tackle": 15, "Razor Leaf": 25}},
+        "Chimchar": {"id": 390, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Ember": 25}},
+        "Piplup": {"id": 393, "type": "Water", "hp": 100, "moves": {"Pound": 15, "Water Gun": 25}},
+    },
+    "Unova": {
+        "Snivy": {"id": 495, "type": "Grass", "hp": 100, "moves": {"Tackle": 15, "Leaf Tornado": 25}},
+        "Tepig": {"id": 498, "type": "Fire", "hp": 100, "moves": {"Tackle": 15, "Ember": 25}},
+        "Oshawott": {"id": 501, "type": "Water", "hp": 100, "moves": {"Tackle": 15, "Water Gun": 25}},
+    },
+    "Kalos": {
+        "Chespin": {"id": 650, "type": "Grass", "hp": 100, "moves": {"Vine Whip": 20, "Seed Bomb": 28}},
+        "Fennekin": {"id": 653, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Psybeam": 25}},
+        "Froakie": {"id": 656, "type": "Water", "hp": 100, "moves": {"Pound": 15, "Water Pulse": 25}},
+    },
+    "Alola": {
+        "Rowlet": {"id": 722, "type": "Grass", "hp": 100, "moves": {"Leafage": 20, "Astonish": 25}},
+        "Litten": {"id": 725, "type": "Fire", "hp": 100, "moves": {"Scratch": 15, "Fire Fang": 28}},
+        "Popplio": {"id": 728, "type": "Water", "hp": 100, "moves": {"Pound": 15, "Bubble Beam": 28}},
     }
 }
-# --- STYLES ---
+
+# --- UI SETTINGS ---
+st.set_page_config(page_title="NEON POKESTREAM", layout="wide")
+
 st.markdown("""
-<style>
+    <style>
+    /* Background Image with Dark Overlay */
+    .stApp {
+        background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                    url("https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070");
+        background-size: cover;
+        color: #0ff;
+    }
 
+    /* Neon Cards */
+    .poke-card {
+        background: rgba(20, 20, 20, 0.8);
+        border: 2px solid #0ff;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 0 15px #0ff, inset 0 0 5px #0ff;
+        transition: 0.3s;
+    }
+    .poke-card:hover {
+        box-shadow: 0 0 30px #f0f, inset 0 0 10px #f0f;
+        border-color: #f0f;
+    }
 
-.stApp {
-    background-color: #121212;
-}
+    /* Neon Buttons */
+    .stButton>button {
+        background: transparent;
+        color: #0ff;
+        border: 2px solid #0ff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #0ff;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background: #0ff;
+        color: black;
+        box-shadow: 0 0 20px #0ff;
+    }
 
-
-html, body, [class*="css"]  {
-    color: #ffffff;
-}
-
-
-.stButton>button {
-    background-color: #333333;
-    color: white;
-    border-radius: 10px;
-    border: 1px solid #555;
-}
-
-.stButton>button:hover {
-    background-color: #444444;
-    color: white;
-}
-.battle-log {
-    color: #00ff00;
-    font-family: monospace;
-    background: #000;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-</style>
+    /* Text Glow */
+    h1, h2, h3 {
+        text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+        color: white !important;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-
-# --- INITIALIZE MEMORY (SESSION STATE) ---
+# --- STATE ---
 if 'phase' not in st.session_state:
-    st.session_state.phase = "setup"
-    st.session_state.logs = []
-    st.session_state.player = None
-    st.session_state.enemy = None
+    st.session_state.update({
+        "phase": "setup", 
+        "total_wins": load_data()["total_wins"], 
+        "player": None, "enemy": None, "logs": []
+    })
 
-def get_img(poke_id):
-    return f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{poke_id}.png"
+def get_img(pid): return f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pid}.png"
 
-# --- GAME FUNCTIONS ---
-def handle_attack(move_name, move_power):
-    # 1. Player Attack Logic
-    p_type = st.session_state.player['type']
-    e_type = st.session_state.enemy['type']
-    
-    # Check multiplier
-    mult = TYPE_CHART.get(p_type, {}).get(e_type, 1.0)
-    dmg = int(move_power * mult) + random.randint(-2, 2)
-    st.session_state.enemy['hp'] -= dmg
-    
-    msg = f"✨ {st.session_state.player['name']} used {move_name}!"
-    if mult > 1: msg += " (SUPER EFFECTIVE!)"
-    elif mult < 1: msg += " (Not very effective...)"
-    st.session_state.logs.append(msg)
-
-    # 2. Check if Enemy Fainted
-    if st.session_state.enemy['hp'] <= 0:
-        st.session_state.enemy['hp'] = 0
-        st.session_state.phase = "end"
-        return
-
-    # 3. Enemy Turn Logic
-    e_move = random.choice(list(st.session_state.enemy['moves'].keys()))
-    e_power = st.session_state.enemy['moves'][e_move]
-    
-    # Enemy multiplier (Opposite)
-    e_mult = TYPE_CHART.get(e_type, {}).get(p_type, 1.0)
-    e_dmg = int(e_power * e_mult) + random.randint(-2, 2)
-    st.session_state.player['hp'] -= e_dmg
-    
-    st.session_state.logs.append(f"💥 Enemy {st.session_state.enemy['name']} used {e_move}! Dealing {e_dmg} damage.")
-
-    # 4. Check if Player Fainted
-    if st.session_state.player['hp'] <= 0:
-        st.session_state.player['hp'] = 0
-        st.session_state.phase = "end"
-
-# --- UI LOGIC ---
+# --- SCREENS ---
 if st.session_state.phase == "setup":
-    st.title("🛡️ Choose Your Region & Pokémon")
-    region = st.selectbox("Region", list(DATA.keys()))
+    st.title("⚡ NEON POKEMON SELECT")
+    st.sidebar.metric("PERMANENT WINS", st.session_state.total_wins)
     
+    reg_choice = st.selectbox("CHOOSE REGION", list(REGIONS.keys()))
     cols = st.columns(3)
-    starters = DATA[region]
     
-    for i, (name, details) in enumerate(starters.items()):
+    starters = REGIONS[reg_choice]
+    for i, (name, data) in enumerate(starters.items()):
         with cols[i]:
-            st.image(get_img(details['id']))
-            # Critical Fix: Using session_state inside the button logic
-            if st.button(f"Pick {name}", key=f"btn_{name}"):
-                st.session_state.player = {
-                    "name": name, "hp": 100, "type": details['type'], 
-                    "id": details['id'], "moves": details['moves']
-                }
-                # Pick a random opponent from the same region
-                opp_name = random.choice(list(starters.keys()))
-                opp_details = starters[opp_name]
-                st.session_state.enemy = {
-                    "name": opp_name, "hp": 100, "type": opp_details['type'], 
-                    "id": opp_details['id'], "moves": opp_details['moves']
-                }
+            st.markdown(f"<div class='poke-card'>", unsafe_allow_html=True)
+            st.image(get_img(data['id']))
+            if st.button(f"SELECT {name}", key=name, use_container_width=True):
+                st.session_state.player = data.copy()
+                st.session_state.player['name'] = name
+                # Pick random opponent
+                all_starters = []
+                for r in REGIONS.values(): all_starters.extend(list(r.items()))
+                opp_name, opp_data = random.choice(all_starters)
+                st.session_state.enemy = opp_data.copy()
+                st.session_state.enemy['name'] = opp_name
                 st.session_state.phase = "battle"
                 st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
 elif st.session_state.phase == "battle":
-    st.title("⚔️ Battle Arena")
-    
-    # Display Health & Images
+    st.title("⚔️ CYBER BATTLE ARENA")
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"### {st.session_state.player['name']}")
-        st.image(get_img(st.session_state.player['id']), width=150)
-        st.progress(st.session_state.player['hp'] / 100)
-        st.write(f"HP: {st.session_state.player['hp']}/100")
-        
+        st.markdown("<div class='poke-card'>", unsafe_allow_html=True)
+        st.image(get_img(st.session_state.player['id']), width=180)
+        st.subheader(st.session_state.player['name'])
+        st.progress(max(0, st.session_state.player['hp']) / 100)
+        st.markdown("</div>", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"### Enemy {st.session_state.enemy['name']}")
-        st.image(get_img(st.session_state.enemy['id']), width=150)
-        st.progress(st.session_state.enemy['hp'] / 100)
-        st.write(f"HP: {st.session_state.enemy['hp']}/100")
+        st.markdown("<div class='poke-card' style='border-color: #f0f; box-shadow: 0 0 15px #f0f;'>", unsafe_allow_html=True)
+        st.image(get_img(st.session_state.enemy['id']), width=180)
+        st.subheader(f"WILD {st.session_state.enemy['name']}")
+        st.progress(max(0, st.session_state.enemy['hp']) / 100)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    st.divider()
-    
-    # Move Selection
-    st.write("#### Your Moves:")
-    move_cols = st.columns(2)
+    st.write("---")
+    m_cols = st.columns(2)
     moves = list(st.session_state.player['moves'].items())
-    
-    for i, (m_name, m_power) in enumerate(moves):
-        # We pass the logic to a function to keep state clean
-        if move_cols[i%2].button(f"{m_name} (Pwr: {m_power})", key=f"move_{i}"):
-            handle_attack(m_name, m_power)
+    for i, (m_name, m_pwr) in enumerate(moves):
+        if m_cols[i%2].button(m_name, use_container_width=True):
+            mult = TYPE_CHART.get(st.session_state.player['type'], {}).get(st.session_state.enemy['type'], 1.0)
+            st.session_state.enemy['hp'] -= int(m_pwr * mult)
+            if st.session_state.enemy['hp'] > 0:
+                st.session_state.player['hp'] -= random.randint(12, 18)
+            if st.session_state.player['hp'] <= 0 or st.session_state.enemy['hp'] <= 0:
+                st.session_state.phase = "result"
             st.rerun()
 
-    # Logs
-    with st.expander("Battle History", expanded=True):
-        for log in reversed(st.session_state.logs):
-            st.markdown(f"<div class='battle-log'>{log}</div>", unsafe_allow_html=True)
-
-elif st.session_state.phase == "end":
+elif st.session_state.phase == "result":
+    st.markdown("<div class='poke-card'>", unsafe_allow_html=True)
     if st.session_state.player['hp'] > 0:
         st.balloons()
-        st.success(f"VICTORY! {st.session_state.player['name']} won!")
+        st.header("🏆 MISSION SUCCESSFUL")
+        st.session_state.total_wins += 1
+        save_data(st.session_state.total_wins)
     else:
-        st.error("DEFEAT! You fainted.")
+        st.header("💀 SYSTEM FAILURE")
     
-    if st.button("Play Again"):
-        st.session_state.clear()
+    if st.button("REBOOT ADVENTURE"):
+        st.session_state.update({"phase": "setup", "logs": []})
         st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
