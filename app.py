@@ -3,7 +3,7 @@ import random
 import json
 import os
 
-# --- PERSISTENCE ---
+# --- PERSISTENCE  ---
 SAVE_FILE = "trainer_data.json"
 
 def load_data():
