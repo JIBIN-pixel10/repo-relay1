@@ -200,7 +200,7 @@ elif st.session_state.phase == "result":
         st.session_state.total_wins += 1
         save_data(st.session_state.total_wins)
     else:
-        st.header("💀 SYSTEM FAILURE")
+        st.header("💀 YOU LOSE")
 
     if st.button("REBOOT ADVENTURE"):
         st.session_state.phase = "setup"
